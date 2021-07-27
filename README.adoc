@@ -1,0 +1,63 @@
+= Update Catalog Snapshots
+
+This repository holds a cron job to update OpenShift Operator Snapshots. It is configured to run every Monday at 2am.
+
+[WARNING]
+This repo needs a Pull Secret to work!
+
+== Deploying the cronjob
+
+The cronjob can be deployed simply using `oc apply -k` as any user with permission to create projects.
+
+[source,sh]
+----
+cd $HOME
+git clone https://github.com/redhat-gpte-devopsautomation/update-catalog-snapshots.git
+cd $HOME/update-catalog-snapshots
+
+# Create your Pull Secret - see below
+
+# This will create the cronjob in Project gpte-update-snapshots
+oc apply -k .
+----
+
+== Creating your own Pull Secret
+
+You will need credentials to both the Red Hat registries (use the OpenShift Pull Secret) and the Quay registries holding the catalog snapshot images. Note that this process will *override* the OpenShift Quay Pull secret - but because you don't need to pull any protected images from Quay this is fine.
+
+. Create a file `$HOME/ocp_pullsecret.json` containing the OpenShift Pull Secret (e.g. from https://cloud.redhat.com)
+. Go to Quay.io, select organization `gpte-devops-automation` and create a robot account.
+. Click the settings icon next to the new robot account and select *View Credentials*
+. Click *Docker Configuration*, then *View <your token>.json*
+. Copy the contents of this file into `$HOME/quay_pullsecret.json`
+. Merge the two pull secrets:
++
+[source,sh]
+----
+jq -c --argjson var "$(jq .auths $HOME/quay_pullsecret.json)" '.auths += $var' $HOME/ocp_pullsecret.json > $HOME/merged_pullsecret.json
+
+jq . $HOME/merged_pullsecret.json
+----
+
+. Create a Secret from the merged pull secret:
++
+[source,sh]
+----
+oc create --dry-run='client' secret generic pullsecret --from-file=pullsecret.json=$HOME/merged_pullsecret.json -o yaml >$HOME/update-catalog-snapshots/secret-pullsecret.yaml
+----
+
+. Now you are ready to create the cronjob:
++
+[source,sh]
+----
+oc apply -k .
+----
+
+== Executing the initial catalog snapshot creation
+
+The CronJob is configured to run every Monday at 2am. If you need to create an updated snapshot - either to seed the registry or because you can't wait until Monday for an updated snapshot you can run the job manually:
+
+[source,sh]
+----
+oc -n gpte-update-snapshots create job --from=cronjob/update-snapshots update-snapshot-now
+----

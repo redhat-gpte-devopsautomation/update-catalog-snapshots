@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: update-snapshots
+spec:
+  # Run CronJob every Monday at 2am
+  # Manually kick off a job: oc create job --from=cronjob/update-snapshots do-it
+  schedule: "2 0 * * 1"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: update-snapshots
+            image: registry.access.redhat.com/ubi8/skopeo:8.4
+            imagePullPolicy: Always
+            env:
+            - name: OCP_VERSIONS
+              value: "v4.6 v4.7 v4.8"
+            volumeMounts:
+            - name: pullsecret
+              mountPath: /pullsecret
+            command:
+            - /bin/bash
+            - -c
+            - |
+              # Pass OpenShift versions as a list in environment variable OCP_VERSIONS
+              for OCP_VERSION in ${OCP_VERSIONS}
+              do
+                # Use OpenShift version and current date as the snapshot image tag
+                IMAGE_TAG=${OCP_VERSION}_$(date +"%Y_%m_%d")
+
+                # Red Hat Operators Catalog
+                echo "Building Red Hat Operators Catalog ${IMAGE_TAG}"
+                skopeo copy \
+                  --authfile /pullsecret/pullsecret.json \
+                  docker://registry.redhat.io/redhat/redhat-operator-index:${OCP_VERSION} \
+                  docker://quay.io/gpte-devops-automation/olm_snapshot_redhat_catalog:${IMAGE_TAG}
+
+                # Community Operators Catalog
+                echo "Building Community Operators Catalog ${IMAGE_TAG}"
+                skopeo copy \
+                  --authfile /pullsecret/pullsecret.json \
+                  docker://registry.redhat.io/redhat/community-operator-index:${OCP_VERSION} \
+                  docker://quay.io/gpte-devops-automation/olm_snapshot_community_catalog:${IMAGE_TAG}
+
+                # Certified Operators Catalog
+                echo "Building Certified Operators Catalog ${IMAGE_TAG}"
+                skopeo copy \
+                  --authfile /pullsecret/pullsecret.json \
+                  docker://registry.redhat.io/redhat/certified-operator-index:${OCP_VERSION} \
+                  docker://quay.io/gpte-devops-automation/olm_snapshot_certified_catalog:${IMAGE_TAG}
+              done
+          dnsPolicy: ClusterFirst
+          restartPolicy: OnFailure
+          serviceAccountName: update-snapshots-job
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - name: pullsecret
+            secret:
+              secretName: pullsecret      
