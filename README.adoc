@@ -17,7 +17,7 @@ cd $HOME/update-catalog-snapshots
 
 # Create your Pull Secret - see below
 
-# When on OpenShift earlier than 4.7 change the cronjob API to v1beta1
+# When on OpenShift earlier than 4.8 change the cronjob API to v1beta1
 sed -i 's/v1/v1beta1/g' cronjob-update-snapshots.yaml
 
 # This will create the cronjob in Project gpte-update-snapshots
