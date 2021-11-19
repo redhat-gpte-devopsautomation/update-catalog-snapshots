@@ -1,4 +1,4 @@
-apiVersion: batch/v1
+apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: update-snapshots
@@ -16,7 +16,7 @@ spec:
             imagePullPolicy: Always
             env:
             - name: OCP_VERSIONS
-              value: "v4.6 v4.7 v4.8"
+              value: "v4.6 v4.7 v4.8 v4.9"
             volumeMounts:
             - name: pullsecret
               mountPath: /pullsecret
