@@ -16,7 +16,7 @@ spec:
             imagePullPolicy: Always
             env:
             - name: OCP_VERSIONS
-              value: "v4.6 v4.7 v4.8 v4.9 v4.10"
+              value: "v4.9 v4.10 v4.11"
             volumeMounts:
             - name: pullsecret
               mountPath: /pullsecret
