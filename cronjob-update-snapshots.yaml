@@ -12,8 +12,8 @@ spec:
         spec:
           containers:
           - name: update-snapshots
-            image: registry.access.redhat.com/ubi8/skopeo:8.5
-            imagePullPolicy: Always
+            image: registry.access.redhat.com/ubi9/skopeo:9.0.0
+            imagePullPolicy: IfNotPresent
             env:
             - name: OCP_VERSIONS
               value: "v4.9 v4.10 v4.11"
@@ -34,6 +34,7 @@ spec:
                 echo "Building Red Hat Operators Catalog ${IMAGE_TAG}"
                 skopeo copy \
                   --authfile /pullsecret/pullsecret.json \
+                  --insecure-policy \
                   docker://registry.redhat.io/redhat/redhat-operator-index:${OCP_VERSION} \
                   docker://quay.io/gpte-devops-automation/olm_snapshot_redhat_catalog:${IMAGE_TAG}
 
@@ -41,6 +42,7 @@ spec:
                 echo "Building Community Operators Catalog ${IMAGE_TAG}"
                 skopeo copy \
                   --authfile /pullsecret/pullsecret.json \
+                  --insecure-policy \
                   docker://registry.redhat.io/redhat/community-operator-index:${OCP_VERSION} \
                   docker://quay.io/gpte-devops-automation/olm_snapshot_community_catalog:${IMAGE_TAG}
 
@@ -48,6 +50,7 @@ spec:
                 echo "Building Certified Operators Catalog ${IMAGE_TAG}"
                 skopeo copy \
                   --authfile /pullsecret/pullsecret.json \
+                  --insecure-policy \
                   docker://registry.redhat.io/redhat/certified-operator-index:${OCP_VERSION} \
                   docker://quay.io/gpte-devops-automation/olm_snapshot_certified_catalog:${IMAGE_TAG}
               done
