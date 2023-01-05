@@ -16,7 +16,7 @@ spec:
             imagePullPolicy: IfNotPresent
             env:
             - name: OCP_VERSIONS
-              value: "v4.9 v4.10 v4.11"
+              value: "v4.9 v4.10 v4.11 v4.12" 
             volumeMounts:
             - name: pullsecret
               mountPath: /pullsecret
