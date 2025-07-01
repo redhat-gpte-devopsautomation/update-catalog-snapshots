@@ -13,11 +13,11 @@ spec:
         spec:
           containers:
           - name: update-snapshots
-            image: registry.access.redhat.com/ubi9/skopeo:9.5
+            image: registry.access.redhat.com/ubi9/skopeo:9.6
             imagePullPolicy: IfNotPresent
             env:
             - name: OCP_VERSIONS
-              value: "v4.16 v4.17 v4.18 v4.19 v4.20"
+              value: "v4.16 v4.17 v4.18 v4.19"
             volumeMounts:
             - name: pullsecret
               mountPath: /pullsecret
